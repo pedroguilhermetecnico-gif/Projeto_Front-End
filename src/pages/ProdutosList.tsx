@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useStore } from '../context/StoreContext';
+import { useStore } from '../context/useStore';
 import { useDeletarProdutoMutation, useListarProdutosQuery } from '../services/api';
 
 export default function ProdutosList() {
@@ -8,16 +8,10 @@ export default function ProdutosList() {
   const { data: produtos = [], isLoading, isError, refetch } = useListarProdutosQuery();
   const [deletarProduto, { isLoading: isDeleting }] = useDeletarProdutoMutation();
 
-  const [filtroTexto, setFiltroTexto] = useState(buscaGlobal);
+  const filtroTexto = buscaGlobal;
   const [filtroAlerta, setFiltroAlerta] = useState('TODOS');
   const [mensagemFeedback, setMensagemFeedback] = useState('');
 
-  useEffect(() => {
-    if (buscaGlobal) {
-      setFiltroTexto(buscaGlobal);
-      setBuscaGlobal('');
-    }
-  }, [buscaGlobal, setBuscaGlobal]);
 
   const produtosFiltrados = produtos.filter((p) => {
     const termo = filtroTexto.toLowerCase();
@@ -76,7 +70,7 @@ export default function ProdutosList() {
               className="input-box"
               placeholder="Pesquisar produto..."
               value={filtroTexto}
-              onChange={(e) => setFiltroTexto(e.target.value)}
+              onChange={(e) => setBuscaGlobal(e.target.value)}
             />
           </div>
 

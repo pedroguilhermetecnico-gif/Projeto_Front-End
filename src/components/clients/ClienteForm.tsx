@@ -1,5 +1,6 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import type { ClienteDTO } from '../../types';
+import { mensagemErroApi } from '../../services/apiError';
 
 interface ClienteFormProps {
   mode: 'create' | 'edit';
@@ -28,26 +29,31 @@ export default function ClienteForm({
   isSubmitting,
   onCancel,
 }: ClienteFormProps) {
-  const [form, setForm] = useState<ClienteDTO>(initialValues ?? VALORES_PADRAO);
+  const [form, setForm] = useState<ClienteDTO>(() => ({ ...VALORES_PADRAO, ...initialValues }));
   const [erroValidacao, setErroValidacao] = useState('');
 
-  useEffect(() => {
-    if (initialValues) {
-      setForm(initialValues);
-    }
-  }, [initialValues]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setErroValidacao('');
 
-    if (!form.nome.trim() || !form.telefone.trim()) {
-      setErroValidacao('Informe o Nome completo e o Telefone / WhatsApp do cliente.');
+    const telefoneDigitos = form.telefone.replace(/\D/g, '');
+    const cepDigitos = form.cep.replace(/\D/g, '');
+
+    if (!form.nome.trim()) {
+      setErroValidacao('Informe o nome completo ou a razao social do cliente.');
       return;
     }
-
-    if (!form.rua.trim() || !form.bairro.trim() || !form.cidade.trim()) {
-      setErroValidacao('Preencha o endereco completo de entrega (Rua, Bairro e Cidade).');
+    if (telefoneDigitos.length < 10 || telefoneDigitos.length > 13) {
+      setErroValidacao('Informe um telefone com DDD: 10 ou 11 digitos, podendo incluir o codigo do pais.');
+      return;
+    }
+    if (form.cep.trim() && cepDigitos.length !== 8) {
+      setErroValidacao('O CEP deve conter 8 digitos.');
+      return;
+    }
+    if (!form.rua.trim() || !form.numero.trim() || !form.bairro.trim() || !form.cidade.trim()) {
+      setErroValidacao('Preencha rua, numero, bairro e cidade do endereco de entrega.');
       return;
     }
 
@@ -68,14 +74,14 @@ export default function ClienteForm({
         cep: form.cep.trim(),
         pontoReferencia: form.pontoReferencia.trim(),
       });
-    } catch {
-      setErroValidacao('Nao foi possivel salvar o cliente na API. Verifique a conexao.');
+    } catch (error) {
+      setErroValidacao(mensagemErroApi(error, 'Não foi possível salvar o cliente.'));
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="form-grid">
-      {erroValidacao && <div className="login-error">{erroValidacao}</div>}
+      {erroValidacao && <div className="login-error" role="alert" aria-live="polite">{erroValidacao}</div>}
 
       <div className="fieldset-box">
         <div className="fieldset-title">Dados Pessoais e Contato</div>
@@ -87,6 +93,7 @@ export default function ClienteForm({
               type="text"
               className="input-box"
               placeholder="Ex: Construtora Horizonte Ltda"
+              maxLength={120}
               value={form.nome}
               onChange={(e) => setForm({ ...form, nome: e.target.value })}
               required
@@ -100,6 +107,9 @@ export default function ClienteForm({
               type="text"
               className="input-box"
               placeholder="(83) 99999-0000"
+              inputMode="tel"
+              autoComplete="tel"
+              maxLength={20}
               value={form.telefone}
               onChange={(e) => setForm({ ...form, telefone: e.target.value })}
               required
@@ -113,6 +123,9 @@ export default function ClienteForm({
               type="text"
               className="input-box"
               placeholder="000.000.000-00"
+              inputMode="numeric"
+              autoComplete="off"
+              maxLength={18}
               value={form.cpfCnpj ?? ''}
               onChange={(e) => setForm({ ...form, cpfCnpj: e.target.value })}
             />
@@ -130,6 +143,8 @@ export default function ClienteForm({
               type="text"
               className="input-box"
               placeholder="58400-000"
+              inputMode="numeric"
+              maxLength={9}
               value={form.cep}
               onChange={(e) => setForm({ ...form, cep: e.target.value })}
             />
