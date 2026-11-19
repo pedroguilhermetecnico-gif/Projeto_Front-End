@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { useStore } from '../context/StoreContext';
+import { useStore } from '../context/useStore';
 
 export default function Login() {
   const { usuarioLogado, login } = useStore();

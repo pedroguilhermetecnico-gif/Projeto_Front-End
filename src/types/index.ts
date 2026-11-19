@@ -49,7 +49,7 @@ export interface ItemOrcamento {
   subtotal: number;
 }
 
-export type FormaPagamento = 'À Vista' | 'Parcelado' | 'Com Desconto';
+export type FormaPagamento = '\u00c0 Vista' | 'Parcelado' | 'Com Desconto';
 
 export type StatusOrcamento = 'PENDENTE' | 'APROVADO';
 

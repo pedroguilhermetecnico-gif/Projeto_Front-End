@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useStore } from '../context/StoreContext';
+import { useStore } from '../context/useStore';
 import { useListarProdutosQuery } from '../services/api';
 
 const NOMES_ROTAS: Record<string, string> = {
@@ -8,13 +8,13 @@ const NOMES_ROTAS: Record<string, string> = {
   '/produtos/novo': 'Produtos & Estoque > Cadastrar Novo Produto',
   '/clientes': 'Clientes > Base de Clientes',
   '/clientes/novo': 'Clientes > Cadastrar Novo Cliente',
-  '/orcamentos': 'Orcamentos & PDV > Novo Orcamento',
-  '/orcamentos/consultar': 'Orcamentos & PDV > Historico de Orcamentos',
+  '/orcamentos': 'Orçamentos & PDV > Novo Orçamento',
+  '/orcamentos/consultar': 'Orçamentos & PDV > Histórico de Orçamentos',
 };
 
 export default function Layout() {
   const { usuarioLogado, logout, setBuscaGlobal } = useStore();
-  const { data: produtos = [] } = useListarProdutosQuery();
+  const { data: produtos = [] } = useListarProdutosQuery(undefined, { skip: !usuarioLogado });
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -54,7 +54,7 @@ export default function Layout() {
       <div className="utility-bar">
         <div className="utility-left">
           <span><span className="status-dot" />Loja Matriz - Campina Grande, PB</span>
-          <span>Atendimento Balcao: (83) 98855-8855</span>
+          <span>Atendimento Balcão: (83) 98855-8855</span>
         </div>
         <div className="utility-right">
           <span>Suporte TI: 0800 721 2026</span>
@@ -85,15 +85,15 @@ export default function Layout() {
           </div>
 
           <div className="topbar-brand">
-            <h1>MR - MATERIAL DE CONSTRUCAO</h1>
-            <p>Um jeito facil de construir barato</p>
+            <h1>MR - MATERIAL DE CONSTRUÇÃO</h1>
+            <p>Um jeito fácil de construir barato</p>
           </div>
         </div>
 
         <form className="topbar-search" onSubmit={handleBuscaGlobal}>
           <input
             type="text"
-            placeholder="O que voce procura? (Ex: Cimento, Rejunte, Marca...)"
+            placeholder="O que você procura? (Ex.: cimento, rejunte, marca...)"
             value={buscaRapida}
             onChange={(e) => setBuscaRapida(e.target.value)}
           />
@@ -103,7 +103,7 @@ export default function Layout() {
         <div className="topbar-user">
           <div className="user-badge">
             <span className="user-avatar">{usuarioLogado.charAt(0).toUpperCase()}</span>
-            <span>Ola, <strong>{usuarioLogado}</strong></span>
+            <span>Olá, <strong>{usuarioLogado}</strong></span>
           </div>
           <button type="button" className="btn-logout" onClick={handleSair}>
             Sair
@@ -187,9 +187,9 @@ export default function Layout() {
 
             <div className="menu-group">
               <div className="menu-header">
-                <span>{menuRecolhido ? 'PDV' : 'ORCAMENTO & PDV'}</span>
+                <span>{menuRecolhido ? 'PDV' : 'OR?AMENTO & PDV'}</span>
               </div>
-              <NavLink to="/orcamentos" end title="Novo Orcamento" className={({ isActive }) => `submenu-link ${isActive ? 'active' : ''}`}>
+              <NavLink to="/orcamentos" end title="Novo Orçamento" className={({ isActive }) => `submenu-link ${isActive ? 'active' : ''}`}>
                 <span className="link-label-wrap">
                   <span className="nav-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -199,11 +199,11 @@ export default function Layout() {
                       <line x1="9" y1="15" x2="15" y2="15" />
                     </svg>
                   </span>
-                  {!menuRecolhido && <span>Novo Orcamento</span>}
+                  {!menuRecolhido && <span>Novo Orçamento</span>}
                 </span>
                 {!menuRecolhido && <span>&rsaquo;</span>}
               </NavLink>
-              <NavLink to="/orcamentos/consultar" title="Consultar Orcamentos" className={({ isActive }) => `submenu-link ${isActive ? 'active' : ''}`}>
+              <NavLink to="/orcamentos/consultar" title="Consultar Orçamentos" className={({ isActive }) => `submenu-link ${isActive ? 'active' : ''}`}>
                 <span className="link-label-wrap">
                   <span className="nav-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -241,7 +241,7 @@ export default function Layout() {
               Portal MR &rsaquo; <strong>{trilhaAtual}</strong>
             </div>
             <div className="quick-actions">
-              <Link to="/orcamentos" className="quick-pill">+ Novo Orcamento</Link>
+              <Link to="/orcamentos" className="quick-pill">+ Novo Orçamento</Link>
               <Link to="/clientes/novo" className="quick-pill">+ Cliente</Link>
               <Link to="/produtos" className="quick-pill">Ver Estoque</Link>
             </div>
@@ -254,12 +254,12 @@ export default function Layout() {
           <footer className="app-footer">
             <div className="footer-grid">
               <div className="footer-brand">
-                <strong>MR - MATERIAL DE CONSTRUCAO</strong> - Rua Floriano Peixoto, 1100 - Centro, Campina Grande - PB
+                <strong>MR - MATERIAL DE CONSTRUÇÃO</strong> - Rua Floriano Peixoto, 1100 - Centro, Campina Grande - PB
               </div>
               <div className="footer-channels">
                 <span>Central de Vendas: <strong>(83) 98855-8855</strong></span>
                 <span>SAC / Ouvidoria: <strong>0800 704 8383</strong></span>
-                <span>&copy; 2026 MR Construcao</span>
+                <span>&copy; 2026 MR Construção</span>
               </div>
             </div>
           </footer>

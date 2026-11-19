@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: mr-material-construcao-demo-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm run api:start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DEMO_ALLOWED_ORIGINS
+        value: '*'

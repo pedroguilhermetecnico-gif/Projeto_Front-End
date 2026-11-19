@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { API_BASE_URL, DEMO_SESSION_KEY } from './demoSession';
 import type {
   AtualizarClientePayload,
   AtualizarProdutoPayload,
@@ -11,9 +12,6 @@ import type {
   ProdutoDTO,
 } from '../types';
 
-const BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  'https://winnicius.com/tecinfo/labs/api-mr-construcao/api';
 
 type RegistroBruto = Record<string, unknown>;
 
@@ -106,7 +104,12 @@ function normalizarOrcamento(raw: RegistroBruto): Orcamento {
 export const mrConstrucaoApi = createApi({
   reducerPath: 'mrConstrucaoApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: BASE_URL,
+    baseUrl: API_BASE_URL,
+    prepareHeaders: (headers) => {
+      const sessionId = sessionStorage.getItem(DEMO_SESSION_KEY);
+      if (sessionId) headers.set('X-Demo-Session', sessionId);
+      return headers;
+    },
   }),
   tagTypes: ['Produtos', 'Clientes', 'Orcamentos'],
   endpoints: (builder) => ({
