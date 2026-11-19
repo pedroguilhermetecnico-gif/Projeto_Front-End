@@ -885,3 +885,21 @@ input[type="radio"] {
     display: none !important;
   }
 }
+
+
+.receipt-print-only { display: none; }
+@media print {
+  @page { size: A4 portrait; margin: 14mm; }
+  html, body, #root { width:100% !important; min-width:0 !important; height:auto !important; margin:0 !important; padding:0 !important; background:#fff !important; }
+  body * { visibility:hidden !important; }
+  .print-receipt, .print-receipt * { visibility:visible !important; }
+  .print-receipt { position:absolute !important; inset:0 auto auto 0 !important; width:100% !important; max-width:none !important; min-height:0 !important; margin:0 !important; padding:0 !important; border:0 !important; border-radius:0 !important; background:#fff !important; box-shadow:none !important; color:#111 !important; }
+  .receipt-print-only { display:block !important; color:#111 !important; font:10pt/1.4 Arial,sans-serif !important; }
+  .print-screen-summary, .print-receipt .no-print { display:none !important; }
+  .receipt-header { display:flex; justify-content:space-between; gap:20px; padding-bottom:14px; border-bottom:2px solid #002541; }
+  .receipt-header h1 { margin:0 0 5px; font-size:16pt; color:#002541; } .receipt-header p { margin:2px 0; font-size:8.5pt; }
+  .receipt-number { display:flex; flex-direction:column; align-items:flex-end; gap:4px; white-space:nowrap; }
+  .receipt-details { margin:16px 0; } .receipt-details h2 { margin:0 0 8px; font-size:11pt; color:#002541; } .receipt-details p { margin:3px 0; }
+  .receipt-items { width:100%; border-collapse:collapse; font-size:8.5pt; } .receipt-items th,.receipt-items td { padding:7px 5px; border:1px solid #cbd5e1; text-align:left; } .receipt-items th { background:#f1f5f9 !important; color:#002541 !important; } .receipt-items tr { break-inside:avoid; }
+  .receipt-totals { width:55%; margin:14px 0 0 auto; text-align:right; } .receipt-totals p { margin:4px 0; } .receipt-total { padding-top:8px; border-top:1px solid #94a3b8; font-size:14pt; font-weight:700; color:#002541; } .receipt-thanks { margin-top:28px; text-align:center; color:#475569; }
+}

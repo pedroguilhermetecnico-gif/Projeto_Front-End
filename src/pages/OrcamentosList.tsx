@@ -2,28 +2,28 @@ import { Link } from 'react-router-dom';
 import { useListarOrcamentosQuery } from '../services/api';
 
 export default function OrcamentosList() {
-  const { data: orcamentos = [], isLoading, isError, refetch } = useListarOrcamentosQuery();
+  const { data: orçamentos = [], isLoading, isError, refetch } = useListarOrcamentosQuery();
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
         <h2 className="page-title" style={{ marginBottom: 0, borderBottom: 'none', paddingBottom: 0 }}>
-          HISTORICO DE ORCAMENTOS E VENDAS
+          HISTÓRICO DE ORÇAMENTOS E VENDAS
         </h2>
-        <Link to="/orcamentos" className="btn-primary" style={{ textDecoration: 'none' }}>
-          + Novo Orcamento
+        <Link to="/orçamentos" className="btn-primary" style={{ textDecoration: 'none' }}>
+          + Novo Orçamento
         </Link>
       </div>
 
       {isLoading && (
         <div style={{ padding: '24px', textAlign: 'center', color: '#00656b', fontWeight: 600 }}>
-          Carregando orcamentos da API...
+          Carregando orçamentos da API...
         </div>
       )}
 
       {isError && (
         <div className="login-error" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>Erro ao carregar o historico de orcamentos.</span>
+          <span>Erro ao carregar o histórico de orçamentos.</span>
           <button type="button" className="btn-secondary" onClick={() => refetch()}>
             Tentar Novamente
           </button>
@@ -45,14 +45,14 @@ export default function OrcamentosList() {
               </tr>
             </thead>
             <tbody>
-              {orcamentos.length === 0 ? (
+              {orçamentos.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
-                    Nenhum orcamento registrado ate o momento.
+                    Nenhum orçamento registrado até o momento.
                   </td>
                 </tr>
               ) : (
-                orcamentos.map((orc) => (
+                orçamentos.map((orc) => (
                   <tr key={orc.id}>
                     <td><strong>#{orc.id}</strong></td>
                     <td>{orc.dataCriacao}</td>

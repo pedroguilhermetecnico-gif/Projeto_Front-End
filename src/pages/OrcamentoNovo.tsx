@@ -1,17 +1,18 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { useStore } from '../context/StoreContext';
+import { useStore } from '../context/useStore';
 import {
   useCriarOrcamentoMutation,
   useListarClientesQuery,
   useListarProdutosQuery,
 } from '../services/api';
 import type { FormaPagamento, ItemOrcamento, Orcamento, StatusOrcamento } from '../types';
+import { mensagemErroApi } from '../services/apiError';
 
 export default function OrcamentoNovo() {
   const { usuarioLogado } = useStore();
-  const { data: clientes = [], isLoading: loadingClientes } = useListarClientesQuery();
-  const { data: produtos = [], isLoading: loadingProdutos } = useListarProdutosQuery();
+  const { data: clientes = [], isLoading: loadingClientes, isError: erroClientes, refetch: refetchClientes } = useListarClientesQuery();
+  const { data: produtos = [], isLoading: loadingProdutos, isError: erroProdutos, refetch: refetchProdutos } = useListarProdutosQuery();
   const [criarOrcamento, { isLoading: salvandoOrcamento }] = useCriarOrcamentoMutation();
 
   const [clienteId, setClienteId] = useState<string>('');
@@ -20,7 +21,7 @@ export default function OrcamentoNovo() {
   const [quantidade, setQuantidade] = useState<number>(1);
   const [itens, setItens] = useState<ItemOrcamento[]>([]);
 
-  const [formaPagamento, setFormaPagamento] = useState<FormaPagamento>('À Vista');
+  const [formaPagamento, setFormaPagamento] = useState<FormaPagamento>('\u00c0 Vista');
   const [parcelas, setParcelas] = useState<number>(2);
   const [descontoPercentual, setDescontoPercentual] = useState<number>(5);
   const [statusInicial, setStatusInicial] = useState<StatusOrcamento>('PENDENTE');
@@ -35,6 +36,7 @@ export default function OrcamentoNovo() {
   const valorDesconto =
     formaPagamento === 'Com Desconto' ? subtotalBruto * (descontoPercentual / 100) : 0;
   const valorTotal = Math.max(0, subtotalBruto - valorDesconto);
+  const clienteDoOrcamento = orcamentoGerado ? clientes.find((cliente) => String(cliente.id) === String(orcamentoGerado.clienteId)) : undefined;
 
   function handleAdicionarItem() {
     setErro('');
@@ -42,8 +44,16 @@ export default function OrcamentoNovo() {
       setErro('Selecione um produto do estoque antes de adicionar.');
       return;
     }
-    if (quantidade <= 0) {
-      setErro('A quantidade deve ser maior que zero.');
+    if (!Number.isFinite(quantidade) || quantidade <= 0) {
+      setErro('Informe uma quantidade válida maior que zero.');
+      return;
+    }
+
+    const quantidadeJaAdicionada = itens.find(
+      (item) => String(item.produtoId) === String(produtoAtual.id),
+    )?.quantidade ?? 0;
+    if (quantidadeJaAdicionada + quantidade > produtoAtual.estoqueAtual) {
+      setErro(`Estoque insuficiente para ${produtoAtual.nome}. Disponível: ${Math.max(0, produtoAtual.estoqueAtual - quantidadeJaAdicionada)} ${produtoAtual.unidade}.`);
       return;
     }
 
@@ -77,7 +87,7 @@ export default function OrcamentoNovo() {
       ];
     });
 
-    setProdutoSelecionadoId('');
+    // Keep the chosen product selected so payment changes and additional items do not lose context.
     setQuantidade(1);
   }
 
@@ -94,15 +104,28 @@ export default function OrcamentoNovo() {
       return;
     }
     if (!vendedor.trim()) {
-      setErro('Informe o nome do vendedor responsavel.');
+      setErro('Informe o nome do vendedor responsável.');
+      return;
+    }
+    if (!Number.isInteger(parcelas) || parcelas < 1 || parcelas > 10) {
+      setErro('Selecione de 1 a 10 parcelas.');
+      return;
+    }
+    if (formaPagamento === 'Com Desconto' &&
+      (!Number.isFinite(descontoPercentual) || descontoPercentual < 1 || descontoPercentual > 50)) {
+      setErro('O desconto deve estar entre 1% e 50%.');
       return;
     }
     if (itens.length === 0) {
-      setErro('Adicione pelo menos um produto ao orcamento.');
+      setErro('Adicione pelo menos um produto ao orçamento.');
       return;
     }
 
     const clienteObj = clientes.find((c) => String(c.id) === clienteId);
+    if (!clienteObj) {
+      setErro('O cliente selecionado não está disponível. Atualize a lista e tente novamente.');
+      return;
+    }
 
     try {
       const criado = await criarOrcamento({
@@ -132,8 +155,8 @@ export default function OrcamentoNovo() {
       });
 
       setItens([]);
-    } catch {
-      setErro('Erro ao registrar orcamento na API. Verifique a conexao e tente novamente.');
+    } catch (error) {
+      setErro(mensagemErroApi(error, 'Não foi possível gravar o orçamento.'));
     }
   }
 
@@ -141,18 +164,28 @@ export default function OrcamentoNovo() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
         <h2 className="page-title" style={{ marginBottom: 0, borderBottom: 'none', paddingBottom: 0 }}>
-          EMISSAO DE ORCAMENTO &amp; PDV
+          EMISSÃO DE ORÇAMENTO &amp; PDV
         </h2>
         <Link to="/orcamentos/consultar" className="btn-secondary" style={{ textDecoration: 'none' }}>
-          Historico de Orcamentos
+          Histórico de Orçamentos
         </Link>
       </div>
 
-      {erro && <div className="login-error">{erro}</div>}
+      {erro && <div className="login-error" role="alert" aria-live="polite">{erro}</div>}
+      {(erroClientes || erroProdutos) && (
+        <div className="login-error" role="alert">
+          <span>Não foi possível carregar os dados para o orçamento.</span>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {erroClientes && <button type="button" className="btn-secondary" onClick={() => refetchClientes()}>Tentar carregar clientes</button>}
+            {erroProdutos && <button type="button" className="btn-secondary" onClick={() => refetchProdutos()}>Tentar carregar produtos</button>}
+          </div>
+        </div>
+      )}
 
       {/* Espelho do Pedido Gerado */}
       {orcamentoGerado && (
         <div
+          className="print-receipt"
           style={{
             backgroundColor: '#f0fdf4',
             border: '1px solid #86efac',
@@ -162,7 +195,7 @@ export default function OrcamentoNovo() {
             marginBottom: '22px',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+          <div className="print-screen-summary" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
             <div>
               <strong style={{ color: '#14532d', fontSize: '1rem' }}>
                 ESPELHO DO PEDIDO #{orcamentoGerado.id} GERADO COM SUCESSO
@@ -185,7 +218,7 @@ export default function OrcamentoNovo() {
             </span>
           </div>
 
-          <div style={{ fontSize: '0.85rem', color: '#1e293b', marginBottom: '12px' }}>
+          <div className="print-screen-summary" style={{ fontSize: '0.85rem', color: '#1e293b', marginBottom: '12px' }}>
             Pagamento: <strong>{orcamentoGerado.formaPagamento}</strong>
             {orcamentoGerado.formaPagamento === 'Parcelado' && ` (${orcamentoGerado.parcelas}x)`}
             {orcamentoGerado.formaPagamento === 'Com Desconto' && ` (${orcamentoGerado.descontoPercentual}% OFF)`}
@@ -196,21 +229,37 @@ export default function OrcamentoNovo() {
             </strong>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button type="button" className="btn-primary" onClick={() => window.print()}>
-              Imprimir Comprovante
-            </button>
-            <button type="button" className="btn-secondary" onClick={() => setOrcamentoGerado(null)}>
-              Fechar Espelho
-            </button>
+          <div className="no-print" style={{ display: 'flex', gap: '10px' }}>
+            <button type="button" className="btn-primary" onClick={() => window.print()}>Imprimir Comprovante</button>
+            <button type="button" className="btn-secondary" onClick={() => setOrcamentoGerado(null)}>Fechar Espelho</button>
           </div>
+          <section className="receipt-print-only" aria-label="Comprovante do orçamento">
+            <header className="receipt-header">
+              <div><h1>MR - MATERIAL DE CONSTRUÇÃO</h1><p>Rua Floriano Peixoto, 1100 - Centro, Campina Grande - PB</p><p>Central de vendas: (83) 98855-8855 | SAC: 0800 704 8383</p></div>
+              <div className="receipt-number"><strong>ORÇAMENTO Nº {orcamentoGerado.id}</strong><span>Emitido em: {orcamentoGerado.dataCriacao}</span><span>Status: {orcamentoGerado.status}</span></div>
+            </header>
+            <section className="receipt-details"><h2>Dados do atendimento</h2>
+              <p><strong>Cliente:</strong> {orcamentoGerado.clienteNome}</p>
+              {clienteDoOrcamento && <p><strong>Telefone:</strong> {clienteDoOrcamento.telefone || 'Não informado'}</p>}
+              {clienteDoOrcamento && <p><strong>Endereço:</strong> {[clienteDoOrcamento.rua, clienteDoOrcamento.numero, clienteDoOrcamento.bairro, clienteDoOrcamento.cidade, clienteDoOrcamento.cep].filter(Boolean).join(', ') || 'Não informado'}</p>}
+              <p><strong>Vendedor:</strong> {orcamentoGerado.vendedor}</p>
+              <p><strong>Pagamento:</strong> {orcamentoGerado.formaPagamento}{orcamentoGerado.formaPagamento === 'Parcelado' && ' (' + orcamentoGerado.parcelas + 'x)'}{orcamentoGerado.formaPagamento === 'Com Desconto' && ' (' + orcamentoGerado.descontoPercentual + '% de desconto)'}</p>
+            </section>
+            <table className="receipt-items"><thead><tr><th>Código</th><th>Produto</th><th>Unidade</th><th>Qtd.</th><th>Valor unitário</th><th>Subtotal</th></tr></thead>
+              <tbody>{orcamentoGerado.itens.map((item) => <tr key={item.produtoId}><td>{item.codigo}</td><td>{item.nomeProduto}</td><td>{item.unidade}</td><td>{item.quantidade}</td><td>{item.valorUnitario.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td><td>{item.subtotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td></tr>)}</tbody>
+            </table>
+            <div className="receipt-totals"><p>Subtotal: <strong>{orcamentoGerado.subtotalBruto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong></p>
+              {orcamentoGerado.subtotalBruto > orcamentoGerado.valorTotal && <p>Desconto: <strong>{(orcamentoGerado.subtotalBruto - orcamentoGerado.valorTotal).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong></p>}
+              <p className="receipt-total">Total: {orcamentoGerado.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+            </div><p className="receipt-thanks">Agradecemos pela preferência!</p>
+          </section>
         </div>
       )}
 
       <form onSubmit={handleFinalizarOrcamento} className="form-grid">
         {/* 1. Cliente e Vendedor */}
         <div className="fieldset-box">
-          <div className="fieldset-title">1. Identificacao do Atendimento</div>
+          <div className="fieldset-title">1. Identificação do Atendimento</div>
           <div className="form-row">
             <div className="form-group" style={{ flex: 2, minWidth: '240px' }}>
               <label htmlFor="orc-cliente">Cliente Comprador *</label>
@@ -289,7 +338,8 @@ export default function OrcamentoNovo() {
               <input
                 id="orc-qtd"
                 type="number"
-                min="1"
+                min="0.01"
+                step="any"
                 className="input-box"
                 value={quantidade}
                 onChange={(e) => setQuantidade(Number(e.target.value))}
@@ -312,20 +362,20 @@ export default function OrcamentoNovo() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Codigo</th>
+                  <th>Código</th>
                   <th>Produto</th>
                   <th>Unidade</th>
                   <th>Qtd.</th>
-                  <th>Valor Unitario</th>
+                  <th>Valor Unitário</th>
                   <th>Subtotal</th>
-                  <th>Acao</th>
+                  <th>Ação</th>
                 </tr>
               </thead>
               <tbody>
                 {itens.length === 0 ? (
                   <tr>
                     <td colSpan={7} style={{ textAlign: 'center', padding: '18px', color: '#64748b' }}>
-                      Nenhum item adicionado ao orcamento ainda.
+                      Nenhum item adicionado ao orçamento ainda.
                     </td>
                   </tr>
                 ) : (
@@ -374,7 +424,7 @@ export default function OrcamentoNovo() {
 
         {/* 3. Pagamento e Calculo Consolidado */}
         <div className="fieldset-box">
-          <div className="fieldset-title">3. Condicao de Pagamento e Fechamento</div>
+          <div className="fieldset-title">3. Condição de Pagamento e Fechamento</div>
           <div className="form-row" style={{ alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
               <div className="form-group" style={{ minWidth: '180px' }}>
@@ -385,7 +435,7 @@ export default function OrcamentoNovo() {
                   value={formaPagamento}
                   onChange={(e) => setFormaPagamento(e.target.value as FormaPagamento)}
                 >
-                  <option value="À Vista">A Vista</option>
+                  <option value={String.fromCharCode(192) + ' Vista'}>{String.fromCharCode(192)} Vista</option>
                   <option value="Parcelado">Parcelado (1x a 10x)</option>
                   <option value="Com Desconto">Com Desconto</option>
                 </select>
@@ -393,7 +443,7 @@ export default function OrcamentoNovo() {
 
               {formaPagamento === 'Parcelado' && (
                 <div className="form-group" style={{ minWidth: '170px' }}>
-                  <label htmlFor="orc-parcelas">Numero de Parcelas</label>
+                  <label htmlFor="orc-parcelas">Número de Parcelas</label>
                   <select
                     id="orc-parcelas"
                     className="input-box"
@@ -456,8 +506,8 @@ export default function OrcamentoNovo() {
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
-          <button type="submit" className="btn-primary" disabled={salvandoOrcamento} style={{ padding: '12px 32px', fontSize: '0.92rem' }}>
-            {salvandoOrcamento ? 'GRAVANDO ORCAMENTO...' : 'FINALIZAR E GRAVAR ORCAMENTO'}
+          <button type="submit" className="btn-primary" disabled={salvandoOrcamento || erroClientes || erroProdutos || loadingClientes || loadingProdutos} style={{ padding: '12px 32px', fontSize: '0.92rem' }}>
+            {salvandoOrcamento ? 'GRAVANDO ORÇAMENTO...' : 'FINALIZAR E GRAVAR ORÇAMENTO'}
           </button>
         </div>
       </form>
