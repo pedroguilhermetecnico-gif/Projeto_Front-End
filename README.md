@@ -1,4 +1,5 @@
 # MR Material de Construção
+# Autor: Pedro Guilherme - Aluno Tecinfo
 
 Aplicação demonstrativa de produtos, estoque, clientes e orçamentos, feita com React, TypeScript e Vite.
 
@@ -31,5 +32,3 @@ npm run lint
 ```
 
 Não há suíte automatizada configurada no `package.json`.
-
-Autor: Pedro Guilherme - Aluno Tecinfo
