@@ -31,3 +31,5 @@ npm run lint
 ```
 
 Não há suíte automatizada configurada no `package.json`.
+
+Autor: Pedro Guilherme - Aluno Tecinfo
