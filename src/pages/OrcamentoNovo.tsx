@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useStore } from '../context/useStore';
 import {
@@ -233,7 +234,7 @@ export default function OrcamentoNovo() {
             <button type="button" className="btn-primary" onClick={() => window.print()}>Imprimir Comprovante</button>
             <button type="button" className="btn-secondary" onClick={() => setOrcamentoGerado(null)}>Fechar Espelho</button>
           </div>
-          <section className="receipt-print-only" aria-label="Comprovante do orçamento">
+          {createPortal(<section className="receipt-print-only" aria-label="Comprovante do orçamento">
             <header className="receipt-header">
               <div><h1>MR - MATERIAL DE CONSTRUÇÃO</h1><p>Rua Floriano Peixoto, 1100 - Centro, Campina Grande - PB</p><p>Central de vendas: (83) 98855-8855 | SAC: 0800 704 8383</p></div>
               <div className="receipt-number"><strong>ORÇAMENTO Nº {orcamentoGerado.id}</strong><span>Emitido em: {orcamentoGerado.dataCriacao}</span><span>Status: {orcamentoGerado.status}</span></div>
@@ -252,7 +253,7 @@ export default function OrcamentoNovo() {
               {orcamentoGerado.subtotalBruto > orcamentoGerado.valorTotal && <p>Desconto: <strong>{(orcamentoGerado.subtotalBruto - orcamentoGerado.valorTotal).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong></p>}
               <p className="receipt-total">Total: {orcamentoGerado.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
             </div><p className="receipt-thanks">Agradecemos pela preferência!</p>
-          </section>
+          </section>, document.body)}
         </div>
       )}
 

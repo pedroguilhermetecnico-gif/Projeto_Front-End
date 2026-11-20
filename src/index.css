@@ -205,6 +205,7 @@ body {
   justify-content: center;
   padding: 32px;
   background-color: #ffffff;
+  position: relative;
 }
 
 .login-card {
@@ -871,6 +872,23 @@ input[type="radio"] {
   color: var(--brand-teal);
 }
 
+.footer-author {
+  max-width: 1180px;
+  margin: 10px auto 0;
+  text-align: right;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.login-author {
+  position: absolute;
+  right: 18px;
+  bottom: 14px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  text-align: right;
+}
+
 /* ================= IMPRESSÃO ================= */
 .print-page {
   background-color: #ffffff;
@@ -890,12 +908,9 @@ input[type="radio"] {
 .receipt-print-only { display: none; }
 @media print {
   @page { size: A4 portrait; margin: 14mm; }
-  html, body, #root { width:100% !important; min-width:0 !important; height:auto !important; margin:0 !important; padding:0 !important; background:#fff !important; }
-  body * { visibility:hidden !important; }
-  .print-receipt, .print-receipt * { visibility:visible !important; }
-  .print-receipt { position:absolute !important; inset:0 auto auto 0 !important; width:100% !important; max-width:none !important; min-height:0 !important; margin:0 !important; padding:0 !important; border:0 !important; border-radius:0 !important; background:#fff !important; box-shadow:none !important; color:#111 !important; }
-  .receipt-print-only { display:block !important; color:#111 !important; font:10pt/1.4 Arial,sans-serif !important; }
-  .print-screen-summary, .print-receipt .no-print { display:none !important; }
+  html, body { width:100% !important; min-width:0 !important; height:auto !important; margin:0 !important; padding:0 !important; background:#fff !important; }
+  #root { display:none !important; }
+  body > .receipt-print-only { display:block !important; position:static !important; width:auto !important; max-width:none !important; margin:0 !important; padding:0 !important; color:#111 !important; font:10pt/1.4 Arial,sans-serif !important; }
   .receipt-header { display:flex; justify-content:space-between; gap:20px; padding-bottom:14px; border-bottom:2px solid #002541; }
   .receipt-header h1 { margin:0 0 5px; font-size:16pt; color:#002541; } .receipt-header p { margin:2px 0; font-size:8.5pt; }
   .receipt-number { display:flex; flex-direction:column; align-items:flex-end; gap:4px; white-space:nowrap; }
@@ -935,6 +950,7 @@ input[type="radio"] {
   .form-row > .btn-primary { width: 100%; }
   .fieldset-box { padding: 12px; }
   .app-footer { padding: 16px; }
+  .footer-author { text-align: left; }
 }
 @media (max-width: 480px) {
   .utility-bar { font-size: 0.68rem; }

@@ -117,6 +117,7 @@ export default function Login() {
             Acesso de demonstração: informe qualquer usuário e senha com 3 ou mais caracteres.
           </div>
         </div>
+        <small className="login-author">Desenvolvido por Pedro Guiherme Lima Freire</small>
       </section>
     </div>
   );

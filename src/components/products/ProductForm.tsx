@@ -81,6 +81,24 @@ export default function ProductForm({
   const [erroValidacao, setErroValidacao] = useState('');
   const [erroApi, setErroApi] = useState('');
 
+  const [precoVendaTexto, setPrecoVendaTexto] = useState(() =>
+    initialValues ? String(initialValues.precoVenda) : '',
+  );
+  const [estoqueAtualTexto, setEstoqueAtualTexto] = useState(() =>
+    initialValues ? String(initialValues.estoqueAtual) : '',
+  );
+  const [minimoEstoqueTexto, setMinimoEstoqueTexto] = useState(() =>
+    initialValues ? String(initialValues.minimoEstoque) : '5',
+  );
+
+  function converterPreco(valor: string): number {
+    const normalizado = valor.trim().replace(/\s/g, '');
+    if (!normalizado) return Number.NaN;
+    return Number(normalizado.includes(',')
+      ? normalizado.replace(/\./g, '').replace(',', '.')
+      : normalizado);
+  }
+
 
   function atualizarCampo<K extends keyof ProdutoDTO>(
     campo: K,
@@ -103,13 +121,17 @@ export default function ProductForm({
       return 'O código de barras deve ter 13 dígitos e um dígito verificador válido (EAN-13).';
     }
 
-    if (!numeroValido(form.precoVenda) || form.precoVenda <= 0) {
+    const precoVenda = converterPreco(precoVendaTexto);
+    const estoqueAtual = Number(estoqueAtualTexto);
+    const minimoEstoque = Number(minimoEstoqueTexto);
+
+    if (!numeroValido(precoVenda) || precoVenda <= 0) {
       return 'O preço de venda deve ser um número maior que zero.';
     }
-    if (!Number.isInteger(form.estoqueAtual) || form.estoqueAtual < 0) {
+    if (!estoqueAtualTexto.trim() || !Number.isInteger(estoqueAtual) || estoqueAtual < 0) {
       return 'O estoque atual deve ser um número inteiro igual ou maior que zero.';
     }
-    if (!Number.isInteger(form.minimoEstoque) || form.minimoEstoque < 0) {
+    if (!minimoEstoqueTexto.trim() || !Number.isInteger(minimoEstoque) || minimoEstoque < 0) {
       return 'O estoque mínimo deve ser um número inteiro igual ou maior que zero.';
     }
     if (!form.familia.trim()) return 'Selecione a família/categoria do produto.';
@@ -142,9 +164,9 @@ export default function ProductForm({
         marca: form.marca.trim(),
         familia: form.familia.trim(),
         unidade: form.unidade.trim(),
-        precoVenda: Number(form.precoVenda),
-        estoqueAtual: Number(form.estoqueAtual),
-        minimoEstoque: Number(form.minimoEstoque),
+        precoVenda: converterPreco(precoVendaTexto),
+        estoqueAtual: Number(estoqueAtualTexto),
+        minimoEstoque: Number(minimoEstoqueTexto),
         validade: form.validade?.trim() || '',
       });
     } catch (error) {
@@ -262,13 +284,17 @@ export default function ProductForm({
             <label htmlFor="prod-preco">Preço de Venda (R$) *</label>
             <input
               id="prod-preco"
-              type="number"
+              type="text"
               inputMode="decimal"
-              step="0.01"
-              min="0.01"
               className="input-box"
-              value={form.precoVenda}
-              onChange={(event) => atualizarCampo('precoVenda', event.target.value === '' ? 0 : Number(event.target.value))}
+              value={precoVendaTexto}
+              onChange={(event) => {
+                const value = event.target.value.replace(/[^\d.,]/g, '');
+                setPrecoVendaTexto(value);
+                atualizarCampo('precoVenda', converterPreco(value));
+              }}
+              placeholder="Ex.: 38,90"
+              autoComplete="off"
               required
             />
           </div>
@@ -277,13 +303,16 @@ export default function ProductForm({
             <label htmlFor="prod-estoque">Estoque Atual *</label>
             <input
               id="prod-estoque"
-              type="number"
+              type="text"
               inputMode="numeric"
-              step="1"
-              min="0"
               className="input-box"
-              value={form.estoqueAtual}
-              onChange={(event) => atualizarCampo('estoqueAtual', event.target.value === '' ? 0 : Number(event.target.value))}
+              value={estoqueAtualTexto}
+              onChange={(event) => {
+                const value = event.target.value.replace(/\D/g, '');
+                setEstoqueAtualTexto(value);
+                atualizarCampo('estoqueAtual', value === '' ? Number.NaN : Number(value));
+              }}
+              placeholder="Ex.: 10"
               required
             />
           </div>
@@ -292,13 +321,16 @@ export default function ProductForm({
             <label htmlFor="prod-minimo">Estoque Mínimo</label>
             <input
               id="prod-minimo"
-              type="number"
+              type="text"
               inputMode="numeric"
-              step="1"
-              min="0"
               className="input-box"
-              value={form.minimoEstoque}
-              onChange={(event) => atualizarCampo('minimoEstoque', event.target.value === '' ? 0 : Number(event.target.value))}
+              value={minimoEstoqueTexto}
+              onChange={(event) => {
+                const value = event.target.value.replace(/\D/g, '');
+                setMinimoEstoqueTexto(value);
+                atualizarCampo('minimoEstoque', value === '' ? Number.NaN : Number(value));
+              }}
+              placeholder="Ex.: 5"
             />
           </div>
 

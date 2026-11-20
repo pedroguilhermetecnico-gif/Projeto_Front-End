@@ -267,6 +267,7 @@ export default function Layout() {
                 <span>&copy; 2026 MR Construção</span>
               </div>
             </div>
+            <div className="footer-author">Desenvolvido por Pedro Guiherme Lima Freire</div>
           </footer>
         </div>
       </div>
