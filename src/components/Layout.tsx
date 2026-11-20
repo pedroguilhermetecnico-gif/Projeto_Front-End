@@ -18,7 +18,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [menuRecolhido, setMenuRecolhido] = useState(false);
+  const [menuRecolhido, setMenuRecolhido] = useState(() => window.matchMedia('(max-width: 760px)').matches);
   const [buscaRapida, setBuscaRapida] = useState('');
 
   if (!usuarioLogado) {
@@ -67,6 +67,8 @@ export default function Layout() {
           <button
             type="button"
             className="btn-sidebar-toggle"
+            aria-expanded={!menuRecolhido}
+            aria-controls="menu-operacional"
             onClick={() => setMenuRecolhido((prev) => !prev)}
             title={menuRecolhido ? 'Expandir menu' : 'Recolher menu'}
           >
@@ -112,7 +114,10 @@ export default function Layout() {
       </header>
 
       <div className="app-body">
-        <aside className={`sidebar ${menuRecolhido ? 'collapsed' : ''}`}>
+        {!menuRecolhido && (
+          <button type="button" className="sidebar-backdrop" aria-label="Fechar menu" onClick={() => setMenuRecolhido(true)} />
+        )}
+        <aside id="menu-operacional" aria-label="Menu operacional" className={`sidebar ${menuRecolhido ? 'collapsed' : ''}`}>
           <div>
             <div className="sidebar-top-title">
               <span>{menuRecolhido ? 'MR' : 'Menu Operacional'}</span>
@@ -187,7 +192,7 @@ export default function Layout() {
 
             <div className="menu-group">
               <div className="menu-header">
-                <span>{menuRecolhido ? 'PDV' : 'OR?AMENTO & PDV'}</span>
+                <span>{menuRecolhido ? 'PDV' : 'ORÇAMENTO & PDV'}</span>
               </div>
               <NavLink to="/orcamentos" end title="Novo Orçamento" className={({ isActive }) => `submenu-link ${isActive ? 'active' : ''}`}>
                 <span className="link-label-wrap">

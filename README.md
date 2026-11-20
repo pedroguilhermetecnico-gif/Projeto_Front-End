@@ -19,7 +19,7 @@ Esta API serve para demonstração e não oferece autenticação real nem armaze
 
 ## Publicar a demonstração
 
-O front-end pode continuar como site estático na Vercel. A API precisa rodar como serviço Node de processo contínuo; o arquivo `render.yaml` prepara um serviço de demonstração no Render. Depois de publicar o serviço, configure no projeto Vercel a variável `VITE_API_URL` com `https://<endereco-do-servico>/api` e gere um novo deploy do front-end.
+O front-end continua publicado como site estático na Vercel. O arquivo vercel.json encaminha as chamadas /api/ ao serviço definido em render.yaml. Publique esse Blueprint no Render para habilitar a API. Se o hostname gerado for diferente, configure VITE_API_URL nas variáveis de ambiente da Vercel com a URL pública do serviço mais /api e faça um novo deploy.
 
 O plano gratuito do Render suspende serviços sem tráfego por 15 minutos e pode reiniciá-los; como o armazenamento é só memória, esses eventos apagam os dados e a primeira chamada pode demorar para acordar o serviço.
 
