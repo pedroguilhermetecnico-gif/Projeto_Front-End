@@ -281,20 +281,30 @@ body {
     background-color: #edf5f0;
     background-image:
       radial-gradient(circle at 12% 18%, rgba(0, 101, 107, 0.08), transparent 30%),
-      linear-gradient(145deg, #f4f8f5 0%, #eaf3ee 100%);
+      linear-gradient(145deg, #f4f8f5 0%, #e8f2ed 58%, #eef5f1 100%);
     isolation: isolate;
     overflow: hidden;
   }
   .login-form-area::before {
     content: '';
     position: absolute;
-    inset: -40px;
+    inset: 0;
     z-index: -1;
     pointer-events: none;
-    opacity: 0.52;
-    background-image:
-      repeating-linear-gradient(45deg, transparent 0 44px, rgba(0, 87, 93, 0.055) 45px 46px, transparent 47px 90px),
-      repeating-linear-gradient(-45deg, transparent 0 44px, rgba(0, 87, 93, 0.04) 45px 46px, transparent 47px 90px);
+    background: linear-gradient(315deg, rgba(0, 101, 107, 0.055), transparent 36%);
+  }
+  .login-form-area::after {
+    content: '';
+    position: absolute;
+    top: -118px;
+    right: -105px;
+    width: 300px;
+    height: 300px;
+    z-index: -1;
+    border: 18px solid rgba(0, 87, 93, 0.065);
+    box-shadow: 0 0 0 22px rgba(0, 87, 93, 0.018), inset 0 0 0 18px rgba(248, 166, 62, 0.035);
+    transform: rotate(45deg);
+    pointer-events: none;
   }
   .login-card {
     position: relative;
